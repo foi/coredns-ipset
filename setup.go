@@ -7,65 +7,81 @@ import (
 	"github.com/coredns/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
-	"github.com/lrh3321/ipset-go"
+	"github.com/vishvananda/netlink"
 )
 
 func init() { plugin.Register("ipset", setup) }
 
 func setup(c *caddy.Controller) error {
 	ipsetLists := map[string][]string{}
+	var ipv6Enabled bool
 	for c.Next() {
 		for c.NextBlock() {
 			ipsetListName := c.Val()
-			domainsListsPaths := c.RemainingArgs()
-			log.Infof(
-				"processing ipset list %s with domain lists %s",
-				ipsetListName,
-				domainsListsPaths,
-			)
-
-			_, err := ipset.List(ipsetListName)
-			if err != nil {
-				log.Fatalf(
-					"ipset list, err: %s",
-					err,
-				)
-			}
-
-			for _, listPath := range domainsListsPaths {
-				_, err := os.Stat(listPath)
+			if ipsetListName == "ipv6" {
+				ipv6Enabled = true
+			} else {
+				_, err := netlink.IpsetList(ipsetListName)
 				if err != nil {
 					log.Fatalf(
-						"stat domains list file, err: %s",
+						"ipset list %s, err: %s",
+						ipsetListName,
 						err,
 					)
 				}
-				domainListFileContent, err := os.ReadFile(
-					listPath,
-				)
-				if err != nil {
-					log.Fatalf(
-						"read file domains list file, err: %s",
-						err,
-					)
+				if ipv6Enabled {
+					_, err := netlink.IpsetList(ipsetListName + "-ipv6")
+					if err != nil {
+						log.Fatalf(
+							"ipset list %s, err: %s",
+							ipsetListName+"-ipv6",
+							err,
+						)
+					}
 				}
-				log.Debugf(
-					"%+v",
-					string(domainListFileContent),
+
+				domainsListsPaths := c.RemainingArgs()
+				log.Infof(
+					"processing ipset list %s with domain lists %s",
+					ipsetListName,
+					domainsListsPaths,
 				)
-				domains := strings.Split(
-					string(domainListFileContent),
-					"\n",
-				)
-				_, ok := ipsetLists[ipsetListName]
-				if !ok {
-					ipsetLists[ipsetListName] = []string{}
-				}
-				for _, domain := range domains {
-					ipsetLists[ipsetListName] = append(
-						ipsetLists[ipsetListName],
-						"."+domain,
+
+				for _, listPath := range domainsListsPaths {
+					_, err := os.Stat(listPath)
+					if err != nil {
+						log.Fatalf(
+							"stat domains list file, err: %s",
+							err,
+						)
+					}
+					domainListFileContent, err := os.ReadFile(
+						listPath,
 					)
+					if err != nil {
+						log.Fatalf(
+							"read file domains list file, err: %s",
+							err,
+						)
+					}
+					log.Debugf(
+						"%+v",
+						string(domainListFileContent),
+					)
+					domains := strings.Split(
+						string(domainListFileContent),
+						"\n",
+					)
+					_, ok := ipsetLists[ipsetListName]
+					if !ok {
+						ipsetLists[ipsetListName] = []string{}
+					}
+					for _, domain := range domains {
+						ipsetLists[ipsetListName] = append(
+							ipsetLists[ipsetListName],
+							"."+domain,
+						)
+					}
 				}
 			}
 		}
@@ -82,6 +98,7 @@ func setup(c *caddy.Controller) error {
 				Next:                     next,
 				ipsetListDomainNamesList: ipsetLists,
 				ResolvedIps:              map[string]struct{}{},
+				IPv6Enabled:              ipv6Enabled,
 			}
 		})
 
