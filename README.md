@@ -10,13 +10,14 @@ cd coredns
 sed -i.bak -r '/ipset:.*/d' plugin.cfg
 sed -i.bak '/forward:.*/i ipset:github.com/foi/coredns-ipset' plugin.cfg
 go get github.com/foi/coredns-ipset
+go mod tidy
 go generate
 make
 ```
 
 Alternatively, you can download pre-built binaries from the [releases](https://github.com/foi/coredns-ipset/releases/) page for amd64 or arm64.
 
-For development, clone the coredns-ipset repository and add to the go.mod file of the [coredns](https://github.com/coredns/coredns) repository: `replace github.com/foi/coredns-ipset => ../coredns-ipset`, then run `go mod tidy`, `go get github.com/foi/coredns-ipset`, `go generate`, and `make`.
+For development, clone the coredns-ipset repository and add to the go.mod file of the [coredns](https://github.com/coredns/coredns) repository: `replace github.com/foi/coredns-ipset => ../coredns-ipset`, then run `go mod tidy`, `go get github.com/foi/coredns-ipset`, `go mod tidy`, `go generate`, and `make`.
 
 ## Prepare binary
 
