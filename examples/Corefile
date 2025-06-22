@@ -11,17 +11,17 @@
   cache 3600
 
   forward . tls://1.1.1.1 {
-       tls_servername cloudflare-dns.com
-       health_check 60s
+      tls_servername cloudflare-dns.com
+      health_check 60s
   }
 
   ipset {
-        # This setting enables IPv6 ipset lists.
-        # By default, only IPv4 ipset lists are used.
-        # The ipset lists must be created in advance, and IPv6 lists should have an -ipv6 suffix.
-        ipv6
-        russia russia.txt
-        usa usa.txt
+      # This setting enables IPv6 ipset lists.
+      # By default, only IPv4 ipset lists are used.
+      # The ipset lists must be created in advance, and IPv6 lists should have an -ipv6 suffix.
+      ipv6
+      russia russia.txt
+      usa usa.txt
   }
 
 }
