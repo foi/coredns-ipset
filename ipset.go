@@ -8,8 +8,8 @@ import (
 	"github.com/coredns/coredns/plugin"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/plugin/pkg/nonwriter"
-	"github.com/lrh3321/ipset-go"
 	"github.com/miekg/dns"
+	"github.com/vishvananda/netlink"
 )
 
 var log = clog.NewWithPlugin("ipset")
@@ -18,6 +18,7 @@ type Ipset struct {
 	Next                     plugin.Handler
 	ipsetListDomainNamesList map[string][]string
 	ResolvedIps              map[string]struct{}
+	IPv6Enabled              bool
 }
 
 func (e Ipset) ServeDNS(
@@ -71,7 +72,7 @@ func (e Ipset) ServeDNS(
 				for _, ipsetListName := range matchedIpsetLists {
 					_, exist := e.ResolvedIps[rr.A.String()]
 					if rr.A != nil && !rr.A.IsUnspecified() && !exist {
-						err = ipset.Add(ipsetListName, &ipset.Entry{IP: rr.A.To4()})
+						err = netlink.IpsetAdd(ipsetListName, &netlink.IPSetEntry{IP: rr.A.To4()})
 						if err != nil {
 							log.Errorf(
 								"Error while appending %s in ipset '%s' list, err: %s", rr.A.To4().String(),
@@ -81,6 +82,26 @@ func (e Ipset) ServeDNS(
 						}
 
 						e.ResolvedIps[rr.A.String()] = struct{}{}
+					}
+				}
+			}
+		case *dns.AAAA:
+			if e.IPv6Enabled {
+				if len(matchedIpsetLists) != 0 {
+					for _, ipsetListName := range matchedIpsetLists {
+						_, exist := e.ResolvedIps[rr.AAAA.String()]
+						if rr.AAAA != nil && !rr.AAAA.IsUnspecified() && !exist {
+							err = netlink.IpsetAdd(ipsetListName+"-ipv6", &netlink.IPSetEntry{IP: rr.AAAA.To16()})
+							if err != nil {
+								log.Errorf(
+									"Error while appending %s in ipset '%s' list, err: %s", rr.AAAA.To16().String(),
+									ipsetListName+"-ipv6",
+									err.Error(),
+								)
+							}
+
+							e.ResolvedIps[rr.AAAA.String()] = struct{}{}
+						}
 					}
 				}
 			}
