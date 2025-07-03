@@ -43,3 +43,8 @@ sudo setcap 'cap_net_bind_service,cap_net_admin=+ep' /usr/local/bin/coredns
 ```
 
 You can find in [examples](https://github.com/foi/coredns-ipset/tree/main/examples) repo's folder.
+
+
+## ROADMAP
+
+- [ ] add nft lists support
