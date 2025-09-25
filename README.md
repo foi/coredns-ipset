@@ -1,6 +1,6 @@
 # coredns-ipset
 
-The plugin for adding resolved IP addresses to ipset (must be installed) lists. Helps route traffic for domains through the desired gateway. It supports ipv4 and ipv6 (disabled by default) ipset lists.
+The plugin for adding resolved IP addresses to ipset (must be installed) or nft set lists. Helps route traffic for domains through the desired gateway. It supports ipv4 and ipv6 (disabled by default) ipset and nft set lists.
 
 ## Building
 
@@ -29,6 +29,8 @@ sudo setcap 'cap_net_bind_service,cap_net_admin=+ep' /usr/local/bin/coredns
 
 ## Example configuration
 
+### ipset
+
 ```
 . {
   ipset {
@@ -36,15 +38,32 @@ sudo setcap 'cap_net_bind_service,cap_net_admin=+ep' /usr/local/bin/coredns
       # By default, only IPv4 ipset lists are used.
       # The ipset lists must be created in advance, and IPv6 lists should have an -ipv6 suffix.
       ipv6
-      russia-ipset-name listofdomains.txt
+      russia-ipset-name listofdomains.txt anotherlist.txt
       usa-ipset-name listofdomains2.txt
   }
 }
 ```
+### nftables
+
+```
+. {
+  ipset {
+      # This setting enables IPv6 nft set lists.
+      # By default, only IPv4 nft set lists are used.
+      # The nft set lists must be created in advance, and IPv6 lists should have an -ipv6 suffix.
+      # directives' order is important!
+      ipv6
+      nft mytable:inet mytable2:inet
+      russia-nft-set-name listofdomains.txt listofdomains3.txt
+      usa-nft-set-name listofdomains2.txt
+  }
+}
+```
+If you don't specify ":inet", it will try to use ipv4 and ipv6 table types (if enabled).
 
 You can find in [examples](https://github.com/foi/coredns-ipset/tree/main/examples) repo's folder.
 
-
 ## ROADMAP
 
-- [ ] add nft lists support
+- [ ] compact build for openwrt
+- [ ] installation instruction for openwrt

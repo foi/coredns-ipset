@@ -1,0 +1,26 @@
+.:5353 {
+  # if you want to disable ipv6 completely
+  #    template IN AAAA {
+  #        rcode NXDOMAIN
+  #    }
+
+  log
+  errors
+  cache 3600
+
+  forward . tls://1.1.1.1 {
+      tls_servername cloudflare-dns.com
+      health_check 60s
+  }
+
+  ipset {
+      # This setting enables IPv6 ipset lists.
+      # By default, only IPv4 ipset lists are used.
+      # The ipset lists must be created in advance, and IPv6 lists should have an -ipv6 suffix.
+      # directives' order is important!
+      ipv6
+      nft mytable:inet mytable2:inet
+      russia-nft-set-name listofdomains.txt listofdomains3.txt
+      usa-nft-set-name listofdomains2.txt
+  }
+}
