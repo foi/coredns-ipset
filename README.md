@@ -1,6 +1,6 @@
 # coredns-ipset
 
-The plugin for adding resolved IP addresses to ipset (must be installed) or nft set lists. Helps route traffic for domains through the desired gateway. It supports ipv4 and ipv6 (disabled by default) ipset and nft set lists.
+The plugin for adding resolved IP addresses to ipset (must be installed) or nft set lists. Helps route traffic for domains (and domain suffixes, e.g., .ru will add all ips from .ru domains to desired ipset) through the desired gateway. It supports ipv4 and ipv6 (disabled by default) ipset and nft set lists.
 
 ## Building
 
