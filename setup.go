@@ -30,23 +30,26 @@ func setup(c *caddy.Controller) error {
 				ipsetType = IpsetNft
 				nftablesTableNames = c.RemainingArgs()
 			default:
-				_, err := netlink.IpsetList(firstToken)
-				if err != nil {
-					log.Fatalf(
-						"ipset list %s, err: %s",
-						firstToken,
-						err,
-					)
-				}
+				var err error
 
-				if ipv6Enabled {
-					_, err := netlink.IpsetList(firstToken + "-ipv6")
+				if ipsetType == IpsetClassic {
 					if err != nil {
 						log.Fatalf(
 							"ipset list %s, err: %s",
-							firstToken+"-ipv6",
+							firstToken,
 							err,
 						)
+					}
+
+					if ipv6Enabled {
+						_, err = netlink.IpsetList(firstToken + "-ipv6")
+						if err != nil {
+							log.Fatalf(
+								"ipset list %s, err: %s",
+								firstToken+"-ipv6",
+								err,
+							)
+						}
 					}
 				}
 
@@ -104,6 +107,12 @@ func setup(c *caddy.Controller) error {
 			"ipset lists contents: %+v",
 			ipsetLists,
 		)
+
+		if ipsetType == IpsetClassic {
+			log.Info("ipset mode enabled")
+		} else {
+			log.Info("nftables mode enabled")
+		}
 	}
 
 	dnsserver.GetConfig(c).
