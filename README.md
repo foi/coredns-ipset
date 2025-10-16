@@ -33,6 +33,8 @@ sudo setcap 'cap_net_bind_service,cap_net_admin=+ep' /usr/local/bin/coredns
 
 ```
 . {
+  # some resolvers config
+  ....
   ipset {
       # This setting enables IPv6 ipset lists.
       # By default, only IPv4 ipset lists are used.
@@ -47,6 +49,9 @@ sudo setcap 'cap_net_bind_service,cap_net_admin=+ep' /usr/local/bin/coredns
 
 ```
 . {
+  # some resolvers config
+  ...
+
   ipset {
       # This setting enables IPv6 nft set lists.
       # By default, only IPv4 nft set lists are used.
