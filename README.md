@@ -9,8 +9,9 @@ git clone https://github.com/coredns/coredns
 cd coredns
 sed -i.bak -r '/ipset:.*/d' plugin.cfg
 sed -i.bak '/forward:.*/i ipset:github.com/foi/coredns-ipset' plugin.cfg
-go get github.com/foi/coredns-ipset
+go get -u github.com/foi/coredns-ipset
 go mod tidy
+go mod vendor
 go generate
 make
 ```
