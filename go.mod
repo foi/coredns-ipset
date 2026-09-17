@@ -1,6 +1,8 @@
 module github.com/foi/coredns-ipset
 
-go 1.27.0
+go 1.25
+
+toolchain go1.25.0
 
 require (
 	github.com/coredns/caddy v1.1.4
