@@ -117,10 +117,9 @@ func setup(c *caddy.Controller) error {
 
 	dnsserver.GetConfig(c).
 		AddPlugin(func(next plugin.Handler) plugin.Handler {
-			ipsetPluginStruct := Ipset{
+			ipsetPluginStruct := &Ipset{
 				Next:                     next,
 				ipsetListDomainNamesList: ipsetLists,
-				ResolvedIps:              map[string]struct{}{},
 				IPv6Enabled:              ipv6Enabled,
 				IpsetType:                ipsetType,
 			}
@@ -180,7 +179,7 @@ func setup(c *caddy.Controller) error {
 						if findNftTable(tableIPv6, nftTablesActual, nftables.TableFamilyIPv6) {
 							nftablesTables = append(
 								nftablesTables,
-								tableIPv4,
+								tableIPv6,
 							)
 						} else {
 							log.Fatalf("missing ipv6 nft table %s", tableName)
