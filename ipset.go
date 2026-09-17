@@ -3,6 +3,7 @@ package ipset
 import (
 	"context"
 	"strings"
+	"sync"
 
 	"github.com/coredns/coredns/plugin"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
@@ -21,7 +22,7 @@ const (
 type Ipset struct {
 	Next                     plugin.Handler
 	ipsetListDomainNamesList map[string][]string
-	ResolvedIps              map[string]struct{}
+	ResolvedIps              sync.Map
 	IPv6Enabled              bool
 	IpsetType                int
 	NftablesTables           []*nftables.Table
@@ -29,7 +30,7 @@ type Ipset struct {
 }
 
 //nolint:gocognit,funlen
-func (e Ipset) ServeDNS(
+func (e *Ipset) ServeDNS(
 	ctx context.Context,
 	w dns.ResponseWriter,
 	r *dns.Msg,
@@ -80,10 +81,12 @@ func (e Ipset) ServeDNS(
 			}
 
 			for _, ipsetListName := range matchedIpsetLists {
-				_, exist := e.ResolvedIps[rr.A.String()]
+				_, exist := e.ResolvedIps.Load(rr.A.String())
 
 				if exist {
 					log.Debugf("%s is already resolved, skipping", rr.A.To4().String())
+
+					continue
 				}
 
 				if rr.A != nil && !rr.A.IsUnspecified() && !exist {
@@ -94,9 +97,11 @@ func (e Ipset) ServeDNS(
 							ipsetListName,
 							err.Error(),
 						)
+
+						continue
 					}
 
-					e.ResolvedIps[rr.A.String()] = struct{}{}
+					e.ResolvedIps.Store(rr.A.String(), struct{}{})
 				}
 			}
 		case *dns.AAAA:
@@ -110,10 +115,12 @@ func (e Ipset) ServeDNS(
 
 			for _, ipsetListName := range matchedIpsetLists {
 				ipsetListName += "-ipv6"
-				_, exist := e.ResolvedIps[rr.AAAA.String()]
+				_, exist := e.ResolvedIps.Load(rr.AAAA.String())
 
 				if exist {
 					log.Debugf("%s is already resolved, skipping", rr.AAAA.To16().String())
+
+					continue
 				}
 
 				if rr.AAAA != nil && !rr.AAAA.IsUnspecified() && !exist {
@@ -124,9 +131,11 @@ func (e Ipset) ServeDNS(
 							ipsetListName,
 							err.Error(),
 						)
+
+						continue
 					}
 
-					e.ResolvedIps[rr.AAAA.String()] = struct{}{}
+					e.ResolvedIps.Store(rr.AAAA.String(), struct{}{})
 				}
 			}
 		}
